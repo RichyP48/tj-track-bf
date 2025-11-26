@@ -13,7 +13,19 @@ export const authService = {
     
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      
+      // Extract roles from JWT if not provided in response
+      let userData = response.data;
+      if (!userData.roles && response.data.token) {
+        try {
+          const payload = JSON.parse(atob(response.data.token.split('.')[1]));
+          userData = { ...userData, roles: payload.roles || [] };
+        } catch (error) {
+          console.error('Error decoding JWT:', error);
+        }
+      }
+      
+      localStorage.setItem('user', JSON.stringify(userData));
     }
     
     return response.data;
@@ -56,7 +68,23 @@ export const authService = {
 
   getCurrentUser(): AuthResponse | null {
     const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    const token = localStorage.getItem('token');
+    
+    if (!user || !token) return null;
+    
+    const userData = JSON.parse(user);
+    
+    // If roles are missing, try to extract from JWT token
+    if (!userData.roles && token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        userData.roles = payload.roles || [];
+      } catch (error) {
+        console.error('Error decoding JWT:', error);
+      }
+    }
+    
+    return userData;
   },
 
   isAuthenticated(): boolean {

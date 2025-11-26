@@ -63,7 +63,7 @@ function LoginForm() {
             disabled={isLoading}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="h-12 px-4 bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all rounded"
+            className="h-12 px-4 bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500/20 transition-all rounded"
             required
           />
         </div>
@@ -90,7 +90,7 @@ function LoginForm() {
               disabled={isLoading}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="h-12 px-4 pr-12 bg-gray-50 border-gray-300 focus:border-blue-500 focus:ring-blue-500/20 transition-all rounded"
+              className="h-12 px-4 pr-12 bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500/20 transition-all rounded"
               required
             />
             <button
@@ -177,12 +177,50 @@ function PromoSidebar() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
+      {/* SVG Filaments Background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none">
+          <defs>
+            <linearGradient id="filament1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.05" />
+            </linearGradient>
+            <linearGradient id="filament2" x1="100%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0.03" />
+            </linearGradient>
+          </defs>
+          
+          {/* Main curved filaments */}
+          <path d="M-100,200 Q300,100 600,300 T1300,250" stroke="url(#filament1)" strokeWidth="2" fill="none" className="animate-pulse" />
+          <path d="M-50,400 Q400,200 800,500 T1250,400" stroke="url(#filament2)" strokeWidth="1.5" fill="none" className="animate-pulse" style={{animationDelay: '1s'}} />
+          <path d="M200,0 Q500,300 900,150 T1200,600" stroke="url(#filament1)" strokeWidth="1" fill="none" className="animate-pulse" style={{animationDelay: '2s'}} />
+          <path d="M-200,600 Q200,400 700,700 T1400,500" stroke="url(#filament2)" strokeWidth="1.5" fill="none" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+          
+          {/* Additional complex filaments */}
+          <path d="M-300,300 Q100,150 500,400 Q800,250 1100,450 T1500,350" stroke="url(#filament1)" strokeWidth="1.2" fill="none" className="animate-pulse" style={{animationDelay: '3s'}} />
+          <path d="M400,-100 Q600,200 300,500 Q700,350 1000,100 T1400,700" stroke="url(#filament2)" strokeWidth="0.8" fill="none" className="animate-pulse" style={{animationDelay: '1.8s'}} />
+          <path d="M-150,50 Q250,350 650,200 Q950,500 1200,300" stroke="url(#filament1)" strokeWidth="1.5" fill="none" className="animate-pulse" style={{animationDelay: '2.7s'}} />
+          <path d="M800,-50 Q400,250 100,150 Q500,600 900,400 T1300,100" stroke="url(#filament2)" strokeWidth="1" fill="none" className="animate-pulse" style={{animationDelay: '0.3s'}} />
+          
+          {/* Floating dots and shapes */}
+          <circle cx="150" cy="150" r="3" fill="#3B82F6" fillOpacity="0.2" className="animate-bounce" style={{animationDelay: '0.2s'}} />
+          <circle cx="950" cy="100" r="2" fill="#8B5CF6" fillOpacity="0.3" className="animate-bounce" style={{animationDelay: '1.5s'}} />
+          <circle cx="300" cy="600" r="2.5" fill="#10B981" fillOpacity="0.25" className="animate-bounce" style={{animationDelay: '0.8s'}} />
+          <circle cx="1100" cy="400" r="2" fill="#3B82F6" fillOpacity="0.2" className="animate-bounce" style={{animationDelay: '2.2s'}} />
+          <circle cx="500" cy="250" r="1.5" fill="#8B5CF6" fillOpacity="0.15" className="animate-bounce" style={{animationDelay: '3.1s'}} />
+          <circle cx="750" cy="550" r="2.8" fill="#10B981" fillOpacity="0.2" className="animate-bounce" style={{animationDelay: '1.9s'}} />
+          <circle cx="80" cy="450" r="2.2" fill="#3B82F6" fillOpacity="0.18" className="animate-bounce" style={{animationDelay: '2.8s'}} />
+          <circle cx="1050" cy="150" r="1.8" fill="#8B5CF6" fillOpacity="0.22" className="animate-bounce" style={{animationDelay: '0.6s'}} />
+        </svg>
+      </div>
+      
       <AnnouncementBanner variant="auth" />
       <Header variant="auth" showBackButton={true} />
       
-      <div className="flex   items-center justify-center min-h-[calc(100vh-100px)] py-0">
-        <div className="flex flex-1 h-full   gap-8 w-full  items-center justify-center">
+      <div className="flex items-center justify-center min-h-[calc(100vh-100px)] py-0 relative z-10">
+        <div className="flex flex-1 h-full gap-8 w-full items-center justify-center">
           <PromoSidebar />
           <div className='w-full flex items-center justify-center'>
             <RegisterForm />

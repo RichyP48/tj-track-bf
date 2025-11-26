@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production builds
+build/
+dist/
+*/build/
+*/dist/
+
+# Java
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite
+
+# Temporary files
+*.tmp
+*.temp

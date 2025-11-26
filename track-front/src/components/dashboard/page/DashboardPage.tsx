@@ -20,8 +20,49 @@ interface User {
 }
 
 export default function DashboardPage() {
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const currentUser = authService.getCurrentUser();
   const isAdmin = currentUser?.roles?.includes('ADMIN') || currentUser?.roles?.includes('MANAGER');
+
+  const fetchUsers = async () => {
+    if (!isAdmin) return;
+    setLoading(true);
+    try {
+      const response = await apiClient.get('/admin/all-users');
+      setUsers(response.data || []);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [isAdmin]);
+
+  const handleApprove = async (userId: string) => {
+    try {
+      await apiClient.post(`/admin/approve-user/${userId}`);
+      toast.success('✅ Utilisateur approuvé');
+      fetchUsers();
+    } catch (error) {
+      toast.error('❌ Erreur approbation');
+    }
+  };
+
+  const handleReject = async (userId: string) => {
+    try {
+      await apiClient.post(`/admin/reject-user/${userId}`);
+      toast.success('🚫 Utilisateur rejeté');
+      fetchUsers();
+    } catch (error) {
+      toast.error('❌ Erreur rejet');
+    }
+  };
+
+  const pendingUsers = users.filter(u => u.isApproved === null && u.isAccountVerified);
 
   return (
     <DashboardLayout>
@@ -100,6 +141,59 @@ export default function DashboardPage() {
             </Card>
           </div>
 
+          {/* Admin User Management */}
+          {isAdmin && pendingUsers.length > 0 && (
+            <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
+              <CardHeader className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-lg">
+                <CardTitle className="text-xl font-heading flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="text-2xl mr-3">👥</span>
+                    Utilisateurs en attente ({pendingUsers.length})
+                  </div>
+                  <Button 
+                    onClick={() => window.location.href = '/users'}
+                    className="bg-white/20 hover:bg-white/30 text-white border-0"
+                  >
+                    Voir tout
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  {pendingUsers.slice(0, 3).map((user) => (
+                    <div key={user.userId} className="flex items-center justify-between p-4 bg-gradient-to-r from-neutral-50 to-neutral-100 rounded-lg">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-secondary-400 rounded-full flex items-center justify-center text-white font-bold">
+                          {user.name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-dark">{user.name}</p>
+                          <p className="text-sm text-neutral-600">{user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleApprove(user.userId)}
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg"
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleReject(user.userId)}
+                          className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Welcome Card */}
           <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white rounded-t-lg">
@@ -148,9 +242,14 @@ export default function DashboardPage() {
                     <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg">
                       📦 Nouvelle commande
                     </Button>
-                    <Button className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white border-0 shadow-lg">
-                      📈 Rapports
-                    </Button>
+                    {isAdmin && (
+                      <Button 
+                        onClick={() => window.location.href = '/users'}
+                        className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-0 shadow-lg"
+                      >
+                        👥 Gérer Utilisateurs
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
