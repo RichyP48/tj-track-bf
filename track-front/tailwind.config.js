@@ -1,0 +1,63 @@
+    /** @type {import('tailwindcss').Config} */
+    module.exports = {
+      content: [
+          "./src/**/*.{js,jsx,ts,tsx}",
+      ],
+      theme: {
+        extend: {
+          fontFamily:{
+            display:'Poppins, sans-serif',
+            sans: 'Poppins, sans-serif',
+            heading: 'Merriweather, serif',
+          },
+          colors:{
+            'dark':"#212529",
+            'light':"#f0f3fb",
+            'neutral': { 
+                '50': '#f6f6f6', 
+                '100': '#e7e7e7', 
+                '200': '#d1d1d1', 
+                '300': '#b0b0b0', 
+                '400': '#888888', 
+                '500': '#6d6d6d', 
+                '600': '#5d5d5d', 
+                '700': '#4f4f4f', 
+                '800': '#454545', 
+                '900': '#3d3d3d', 
+                '950': '#000000', 
+            },
+            primary: { 
+                '50': '#F3FAFF',
+                '100': '#E2F3FF',
+                '200': '#B3E4FF',
+                '300': '#83D4FF',
+                '400': '#3AABDF',
+                '500': '#009ADF',
+                '600': '#008ACA',
+                '700': '#006B9A',
+                '800': '#004C6A',
+                '900': '#002E39',
+                '950': '#001E22',
+            }, 
+            secondary: { 
+                '50': '#F1F7FC',
+                '100': '#E2ECF5',
+                '200': '#B6CDE3',
+                '300': '#89AECD',
+                '400': '#4485B8',
+                '500': '#0060A2',
+                '600': '#005793',
+                '700': '#004574',
+                '800': '#003355',
+                '900': '#002237',
+                '950': '#001A24',
+            }, 
+            'grey-border': '#BDBDBD',
+            'light-bg': '#CCEBF9',
+            'light-grey-bg': '#E6E7E8',
+            'white': '#FFFFFF',
+          },
+        },
+      },
+      plugins: [],
+    }
