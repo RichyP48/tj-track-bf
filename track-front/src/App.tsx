@@ -10,7 +10,7 @@ import VerifyOtpPage from '@/components/auth/pages/VerifyOtpPage';
 import DashboardPage from '@/components/dashboard/page/DashboardPage';
 import ComingSoonPage from '@/components/dashboard/page/UnderDevelopmentPage';
 import LandingPage from '@/components/dashboard/page/LandingPage';
-import UsersPage from '@/components/dashboard/page/UsersPage';
+import UsersPage from '@/components/dashboard/page/UsersPageSimple';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {

@@ -2,35 +2,56 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, User, Mail, Calendar } from 'lucide-react';
+import { Check, X, User, Mail, Phone, Building } from 'lucide-react';
 import { toast } from 'sonner';
 import { apiClient } from '@/lib/api-client';
 import { DashboardLayout } from '../layout/DashboardLayout';
 
-interface PendingUser {
+interface UserData {
   userId: string;
   name: string;
   email: string;
   roles: string[];
   isAccountVerified: boolean;
-  isApproved: boolean;
+  isApproved: boolean | null;
+  phoneNumber?: string;
+  enterpriseName?: string;
+  town?: string;
+  address?: string;
 }
 
 function UsersPageContent() {
-  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchPendingUsers();
+    fetchUsers();
   }, []);
 
-  const fetchPendingUsers = async () => {
+  const fetchUsers = async () => {
     try {
-      const response = await apiClient.get('/admin/pending-users');
-      setPendingUsers(response.data);
-    } catch (error) {
-      toast.error('Erreur lors du chargement des utilisateurs');
+      console.log('Fetching users...');
+      setError(null);
+      const response = await apiClient.get('/admin/all-users');
+      console.log('Users response:', response.data);
+      
+      if (Array.isArray(response.data)) {
+        setUsers(response.data);
+        console.log(`Loaded ${response.data.length} users`);
+      } else {
+        console.error('Response data is not an array:', response.data);
+        setError('Format de données invalide');
+        setUsers([]);
+      }
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Erreur inconnue';
+      setError(errorMessage);
+      toast.error(`Erreur: ${errorMessage}`);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -41,7 +62,7 @@ function UsersPageContent() {
     try {
       await apiClient.post(`/admin/approve-user/${userId}`);
       toast.success('Utilisateur approuvé avec succès');
-      fetchPendingUsers();
+      fetchUsers();
     } catch (error) {
       toast.error('Erreur lors de l\'approbation');
     } finally {
@@ -54,13 +75,33 @@ function UsersPageContent() {
     try {
       await apiClient.post(`/admin/reject-user/${userId}`);
       toast.success('Utilisateur rejeté');
-      fetchPendingUsers();
+      fetchUsers();
     } catch (error) {
       toast.error('Erreur lors du rejet');
     } finally {
       setActionLoading(null);
     }
   };
+
+  const getStatusBadge = (user: UserData) => {
+    if (user.isApproved === true) {
+      return <Badge className="bg-green-600">Accepté</Badge>;
+    }
+    if (user.isApproved === false) {
+      return <Badge variant="destructive">Rejeté</Badge>;
+    }
+    if (user.isAccountVerified) {
+      return <Badge variant="secondary">En attente</Badge>;
+    }
+    return <Badge variant="outline">Non confirmé</Badge>;
+  };
+
+  const filteredUsers = users.filter(user => {
+    if (filter === 'pending') return user.isApproved === null && user.isAccountVerified;
+    if (filter === 'approved') return user.isApproved === true;
+    if (filter === 'rejected') return user.isApproved === false;
+    return true;
+  });
 
   if (loading) {
     return (
@@ -70,71 +111,156 @@ function UsersPageContent() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center h-32 space-y-4">
+            <p className="text-red-500">Erreur: {error}</p>
+            <Button onClick={fetchUsers}>Réessayer</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Gestion des Utilisateurs</h1>
-        <Badge variant="secondary" className="text-lg px-3 py-1">
-          {pendingUsers.length} en attente
-        </Badge>
+        <div className="flex gap-2">
+          <Button 
+            variant={filter === 'all' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setFilter('all')}
+          >
+            Tous ({users.length})
+          </Button>
+          <Button 
+            variant={filter === 'pending' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setFilter('pending')}
+          >
+            En attente ({users.filter(u => u.isApproved === null && u.isAccountVerified).length})
+          </Button>
+          <Button 
+            variant={filter === 'approved' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setFilter('approved')}
+          >
+            Acceptés ({users.filter(u => u.isApproved === true).length})
+          </Button>
+          <Button 
+            variant={filter === 'rejected' ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setFilter('rejected')}
+          >
+            Rejetés ({users.filter(u => u.isApproved === false).length})
+          </Button>
+        </div>
       </div>
 
-      {pendingUsers.length === 0 ? (
-        <Card>
-          <CardContent className="flex items-center justify-center h-32">
-            <p className="text-gray-500">Aucune demande en attente</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {pendingUsers.map((user) => (
-            <Card key={user.userId} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <User className="h-5 w-5" />
-                  {user.name}
-                  <Badge variant="outline">
-                    {user.roles.join(', ')}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Mail className="h-4 w-4" />
-                    {user.email}
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Badge variant={user.isAccountVerified ? "default" : "destructive"}>
-                      {user.isAccountVerified ? "Email vérifié" : "Email non vérifié"}
-                    </Badge>
-                  </div>
-
-                  <div className="flex gap-3 pt-3">
-                    <Button
-                      onClick={() => handleApprove(user.userId)}
-                      disabled={actionLoading === user.userId}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Approuver
-                    </Button>
-                    <Button
-                      onClick={() => handleReject(user.userId)}
-                      disabled={actionLoading === user.userId}
-                      variant="destructive"
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Rejeter
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Liste des Utilisateurs</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredUsers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              Aucun utilisateur trouvé
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b bg-gray-50">
+                    <th className="text-left p-3 font-semibold">Nom</th>
+                    <th className="text-left p-3 font-semibold">Email</th>
+                    <th className="text-left p-3 font-semibold">Téléphone</th>
+                    <th className="text-left p-3 font-semibold">Entreprise</th>
+                    <th className="text-left p-3 font-semibold">Ville</th>
+                    <th className="text-left p-3 font-semibold">Rôles</th>
+                    <th className="text-left p-3 font-semibold">Statut</th>
+                    <th className="text-left p-3 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user.userId} className="border-b hover:bg-gray-50">
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium">{user.name}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{user.email}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{user.phoneNumber || '-'}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm">{user.enterpriseName || '-'}</span>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span className="text-sm">{user.town || '-'}</span>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-1">
+                          {user.roles.map(role => (
+                            <Badge key={role} variant="outline" className="text-xs">
+                              {role}
+                            </Badge>
+                          ))}
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        {getStatusBadge(user)}
+                      </td>
+                      <td className="p-3">
+                        {user.isApproved === null && user.isAccountVerified && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleApprove(user.userId)}
+                              disabled={actionLoading === user.userId}
+                              className="bg-green-600 hover:bg-green-700 h-8 px-2"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleReject(user.userId)}
+                              disabled={actionLoading === user.userId}
+                              className="h-8 px-2"
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
+                        {user.isApproved !== null && (
+                          <span className="text-xs text-gray-500">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
