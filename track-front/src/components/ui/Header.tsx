@@ -59,22 +59,22 @@ export function Header({
   return (
     <header className="bg-blue-600 text-white fixed h-16 w-full z-10 shadow-md">
       <div className="mx-auto px-4 lg:px-6 py-3 lg:py-4">
-        <div className="flex items-center justify-between gap-2 lg:gap-4">
-          <div className="flex-shrink-0">
+        <div className="flex items-center justify-between  gap-2 lg:gap-4">
+          <div className="flex-shrink-0   ">
             <img src="./G logo.png" alt="TJ-Track Logo" className="h-8 w-8" />
           </div>
           
           {showSearch && (
-            <div className="flex-1 max-w-5xl relative min-w-0">
-              <div className="relative border-slate-400 border-2 rounded top-4 flex items-center">
+            <div className="flex-1  flex justify-end  mx-10 pr-10 p">
+              <div className="relative border-slate-400 border-2 rounded flex items-center w-full max-w-5xl top-4">
                 <input
                   type="text"
                   placeholder="input search text"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  className="w-full h-12 px-2 lg:px-4 py-2 text-gray-700 bg-white rounded-none focus:outline-none text-xs lg:text-base"
+                  className="w-full h-10 px-2 lg:px-4 py-2 text-gray-700 bg-white rounded-l focus:outline-none text-xs lg:text-base"
                 />
-                <button className="bg-blue-700 h-12 hover:bg-blue-800 px-2 lg:px-4 py-2 text-white transition-colors flex-shrink-0">
+                <button className="bg-blue-700 h-10 hover:bg-blue-800 px-2 lg:px-4 py-2 text-white transition-colors flex-shrink-0 rounded-r">
                   <Search size={16} className="lg:w-5 lg:h-5" />
                 </button>
               </div>

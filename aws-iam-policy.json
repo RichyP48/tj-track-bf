@@ -1,0 +1,23 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowSecretsManagerAccess",
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:DescribeSecret"
+            ],
+            "Resource": "arn:aws:secretsmanager:eu-north-1:692018624387:secret:rds!cluster-9926d4dc-59d9-4637-b285-d3735bcffa6c-SQx6Au"
+        },
+        {
+            "Sid": "AllowRDSAccess",
+            "Effect": "Allow",
+            "Action": [
+                "rds:DescribeDBClusters",
+                "rds:DescribeDBInstances"
+            ],
+            "Resource": "arn:aws:rds:eu-north-1:692018624387:cluster:tj-track"
+        }
+    ]
+}
