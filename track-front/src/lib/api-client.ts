@@ -13,9 +13,14 @@ export const apiClient = axios.create({
 // Request interceptor to add JWT token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const encoded = localStorage.getItem('tj_track_token');
+    if (encoded) {
+      try {
+        const token = atob(encoded);
+        config.headers.Authorization = `Bearer ${token}`;
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
     }
     return config;
   },
@@ -29,8 +34,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      localStorage.removeItem('tj_track_token');
+      localStorage.removeItem('tj_track_user');
       window.location.href = '/auth/login';
     }
     return Promise.reject(error);

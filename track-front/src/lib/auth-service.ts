@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api-client';
 import { UserRole } from '@/lib/api-types';
+import { secureStorage } from '@/lib/secure-storage';
 import type { ProfileRequest, LoginRequest, OtpRequest, AuthResponse, ProfileResponse} from '@/lib/api-types';
 
 export const authService = {
@@ -12,7 +13,7 @@ export const authService = {
     const response = await apiClient.post('/login', { email, password });
     
     if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
+      secureStorage.setToken(response.data.token);
       
       // Extract roles from JWT if not provided in response
       let userData = response.data;
@@ -25,7 +26,7 @@ export const authService = {
         }
       }
       
-      localStorage.setItem('user', JSON.stringify(userData));
+      secureStorage.setUser(userData);
     }
     
     return response.data;
@@ -34,15 +35,33 @@ export const authService = {
   async verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string; token?: string; name?: string; roles?: string[] }> {
     const response = await apiClient.post('/verify-otp', { email, otp });
     
+    console.log('OTP verification response:', response.data);
+    
     // If login OTP verification returns token, store it
     if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify({
-        email: response.data.email,
+      secureStorage.setToken(response.data.token);
+      
+      // Extract roles from JWT if not in response
+      let roles = response.data.roles;
+      if (!roles && response.data.token) {
+        try {
+          const payload = JSON.parse(atob(response.data.token.split('.')[1]));
+          roles = payload.roles || [];
+          console.log('Extracted roles from JWT:', roles);
+        } catch (error) {
+          console.error('Error extracting roles from JWT:', error);
+        }
+      }
+      
+      const userData = {
+        email: response.data.email || email,
         name: response.data.name,
-        roles: response.data.roles,
+        roles: roles,
         token: response.data.token
-      }));
+      };
+      
+      console.log('Storing user data:', userData);
+      secureStorage.setUser(userData);
     }
     
     return response.data;
@@ -62,17 +81,16 @@ export const authService = {
   },
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    secureStorage.clear();
   },
 
   getCurrentUser(): AuthResponse | null {
-    const user = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const user = secureStorage.getUser();
+    const token = secureStorage.getToken();
     
     if (!user || !token) return null;
     
-    const userData = JSON.parse(user);
+    const userData = typeof user === 'string' ? JSON.parse(user) : user;
     
     // If roles are missing, try to extract from JWT token
     if (!userData.roles && token) {
@@ -88,6 +106,29 @@ export const authService = {
   },
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    try {
+      const token = secureStorage.getToken();
+      console.log('Auth check - token exists:', !!token);
+      
+      if (!token) {
+        console.log('Auth check - no token found');
+        return false;
+      }
+      
+      const isValid = secureStorage.isTokenValid(token);
+      console.log('Auth check - token valid:', isValid);
+      
+      if (!isValid) {
+        console.log('Auth check - token invalid, logging out');
+        this.logout();
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Auth check error:', error);
+      this.logout();
+      return false;
+    }
   }
 };

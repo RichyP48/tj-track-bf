@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/inventory-management-backend/inventory-management-backend" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/tj-track" vcs="Git" />
   </component>
 </project>

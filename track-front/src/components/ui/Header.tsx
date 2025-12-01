@@ -10,6 +10,7 @@ interface HeaderProps {
   showBackButton?: boolean;
   backButtonText?: string;
   backButtonLink?: string;
+  onSearch?: (query: string) => void;
 }
 
 export function Header({ 
@@ -17,7 +18,8 @@ export function Header({
   showSearch = false, 
   showBackButton = false,
   backButtonText = "Retour à l'accueil",
-  backButtonLink = "/"
+  backButtonLink = "/",
+  onSearch
 }: HeaderProps) {
   const [searchValue, setSearchValue] = useState("");
   const navigate = useNavigate();
@@ -71,7 +73,10 @@ export function Header({
                   type="text"
                   placeholder="input search text"
                   value={searchValue}
-                  onChange={(e) => setSearchValue(e.target.value)}
+                  onChange={(e) => {
+                    setSearchValue(e.target.value);
+                    onSearch?.(e.target.value);
+                  }}
                   className="w-full h-10 px-2 lg:px-4 py-2 text-gray-700 bg-white rounded-l focus:outline-none text-xs lg:text-base"
                 />
                 <button className="bg-blue-700 h-10 hover:bg-blue-800 px-2 lg:px-4 py-2 text-white transition-colors flex-shrink-0 rounded-r">
